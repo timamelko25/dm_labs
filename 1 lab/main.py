@@ -1,66 +1,68 @@
-import re
+import struct
 
 def LZ78(path):
-    file = open(path, 'r')
-    file2 = open(f"coded_{path}", 'w')
-    f = file.read()
-    f = list(f)
+    with open(path, 'r') as file:
+        f = file.read()
     D = ['']
-    d = 0
-    k = 1
-    while k < len(f):
-        p = FD(f, D, k)
-        l = len(D[p])
-        file2.write(f"{p}{f[k+l-1]}")
-        d = d + 1
-        D.append(D[p] + f[k+l-1])
-        k = k + l + 1
-    file.close()
-    file2.close()
+    k = 0
+    coded_filename = f"coded_{path.replace('.txt', '.bin')}"
+    
+    with open(coded_filename, 'wb') as file2:
+        while k < len(f):
+            p = FD(f, D, k)
+            l = len(D[p])
+            
+            file2.write(struct.pack('I', p)) #
+            
+            if k + l < len(f):
+                file2.write(f[k+l].encode('ascii'))
+                D.append(D[p] + f[k+l])
+
+
+            k += l + 1
 
 def FD(f, D, k):
     l, p = 0, 0
-    for i in range(0,len(D)):
+    for i in range(1, len(D)):
         m = len(D[i])
-        if D[i] == f[k+m-2] and m > l:
-            p = i
-            l = m
+        if f[k:k + m] == D[i]:
+            if m > l: 
+                l = m
+                p = i
     return p
 
 def LZ78_decode(path):
-    file = open(path, 'r')
-    file2 = open(f"decoded_{path}", 'w')
-    tmp = []
-    pattern = r'\d+|[A-Za-z]|[ \n]|[-.,—!?:;"]'
-    for char in file:
-        matches = re.findall(pattern, char)
-        tmp.extend(matches)
-        
-    g = []
-    for i in range(0, len(tmp)-1, 2):
-        g.append([tmp[i], tmp[i+1]])
-    D = ['']
-    d = 0
-    for k in range(0, len(g)):
-        p = int(g[k][0])
-        q = g[k][1]
-        file2.write(f"{D[p]}{q}")
-        d = d + 1
-        D.append(D[p] + q)
-    file.close()
-    file2.close()
+    with open(path, 'rb') as file:
+        g = []
+        while True:
+            bytes_read = file.read(4) #
+            if not bytes_read:
+                break
+            p = struct.unpack('I', bytes_read)[0] #
+            q = file.read(1).decode('ascii')
+            g.append([p, q])
 
+    D = ['']
+    decoded_filename = f"{path.replace('coded', 'decoded').replace('.bin', '.txt')}"
+    with open(decoded_filename, 'w') as file2:
+        for k in range(len(g)):
+            p = g[k][0]
+            q = g[k][1]
+            file2.write(f"{D[p]}{q}")
+            D.append(D[p] + q)
 
 def main():
     while True:
-        path = input("Enter the filename: ")
         choice = input("Enter 1 to encode or 2 to decode, or 0 to exit: ")
         if choice == '0':
             break
-        elif choice == "1":
+        path = input("Enter the filename: ")
+        if choice == "1":
             LZ78(path)
         elif choice == "2":
             LZ78_decode(path)
+        else:
+            print("Invalid choice")
     return 0
 
 if __name__ == "__main__":
