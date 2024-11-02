@@ -1,13 +1,14 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
 def Floyd_Warshall(W, p, T, P):
     for i in range(p):
         for j in range(p):
             for k in range(p):
                 T[i][j] = W[i][j]
                 if W[i][j] == float('inf'):
-                    P[i][j] = 0
+                    P[i][j] = float('inf')
                 else:
                     P[i][j] = i
 
@@ -22,11 +23,41 @@ def Floyd_Warshall(W, p, T, P):
     for j in range(p):
         if T[j][j] < 0:
             return -1
-        
+
+
+def reconstruct_paths(P, p):
+    paths = [[None for _ in range(p)] for _ in range(p)]
+
+    for i in range(p):
+        for j in range(p):
+            if i == j:
+                paths[i][j] = [i]
+            elif P[i][j] != float('inf'):
+                path = []
+                k = j
+                while k != i:
+                    path.append(k)
+                    if P[i][k] == float('inf') or P[i][k] == k:
+                        path = None
+                        break
+                    k = P[i][k]
+                if path is not None:
+                    path.append(i)
+                    path.reverse()
+                paths[i][j] = path
+            else:
+                paths[i][j] = None
+
+    return paths
+
+
+
+
 def save_matrix(matrix, filename):
     with open(filename, 'w') as file:
         for row in matrix:
             file.write(" ".join("{:8.3f}".format(col) if col != float('inf') else "inf" for col in row) + "\n")
+
 
 def visualize_graph(W):
     G = nx.DiGraph()
@@ -37,14 +68,17 @@ def visualize_graph(W):
 
     pos = nx.spring_layout(G)
 
-    nx.draw(G, pos, with_labels=True, node_size=700, node_color='lightblue', font_size=10, font_weight='bold', arrows=True)
+    nx.draw(G, pos, with_labels=True, node_size=700, node_color='lightblue', font_size=10, font_weight='bold',
+            arrows=True)
     edge_labels = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=9)
 
     plt.show()
 
+
 def main():
-    with open('graph.txt', 'r') as file:
+    num = 3
+    with open(f'graph_{num}.txt', 'r') as file:
         W = []
         for line in file:
             row = []
@@ -54,7 +88,7 @@ def main():
                 else:
                     row.append(float(value))
             W.append(row)
-            
+
     p = len(W)
 
     T = [[float('inf') for _ in range(p)] for _ in range(p)]
@@ -63,9 +97,13 @@ def main():
     if Floyd_Warshall(W, p, T, P) == -1:
         print("отрицательный цикл.")
     else:
-        save_matrix(T, 'T.txt')
-        save_matrix(P, 'P.txt')
-        
+        save_matrix(T, f'T_{num}.txt')
+        save_matrix(P, f'P_{num}.txt')
+        paths = reconstruct_paths(P, p)
+        for i in range(p):
+            for j in range(p):
+                print(f"Path from {i} to {j}: {paths[i][j]}")
+
     visualize_graph(W)
 
     return 0
