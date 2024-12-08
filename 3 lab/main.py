@@ -16,23 +16,25 @@ class Graph:
         parent = {}
         cycle = []
 
-        def dfs(vertex, prev):
-            visited.add(vertex)
-            parent[vertex] = prev
-            for neighbor in range(self.V):
-                if self.adj_matrix[vertex][neighbor] == 1:
-                    if neighbor not in visited:
-                        if dfs(neighbor, vertex):
-                            return True
-                    elif neighbor != prev:
-                        nonlocal cycle
-                        cycle = self.extract_cycle(vertex, neighbor, parent)
-                        return True
-            return False
+        def dfs(start):
+            stack = [(start, -1)]
+            while stack:
+                vertex, prev = stack.pop()
+                if vertex not in visited:
+                    visited.add(vertex)
+                    parent[vertex] = prev
+                    for neighbor in range(self.V):
+                        if self.adj_matrix[vertex][neighbor] == 1:
+                            if neighbor not in visited:
+                                stack.append((neighbor, vertex))
+                            elif neighbor != prev:
+                                return self.extract_cycle(vertex, neighbor, parent)
+            return None
 
         for vertex in range(self.V):
             if vertex not in visited:
-                if dfs(vertex, -1):
+                cycle = dfs(vertex)
+                if cycle:
                     return cycle
         return None
 
@@ -50,47 +52,48 @@ class Graph:
         visited = set()
         cycle_count = 0
 
-        def dfs(vertex, parent):
-            nonlocal cycle_count
-            visited.add(vertex)
-            for neighbor in range(self.V):
-                if self.adj_matrix[vertex][neighbor] == 1:
-                    if neighbor not in visited:
-                        dfs(neighbor, vertex)
-                    elif neighbor != parent:
-                        cycle_count += 1
+        def dfs(start):
+            stack = [(start, -1)]
+            local_visited = set()
+            while stack:
+                vertex, parent = stack.pop()
+                if vertex not in local_visited:
+                    local_visited.add(vertex)
+                    visited.add(vertex)
+                    for neighbor in range(self.V):
+                        if self.adj_matrix[vertex][neighbor] == 1:
+                            if neighbor not in local_visited:
+                                stack.append((neighbor, vertex))
+                            elif neighbor != parent:
+                                nonlocal cycle_count
+                                cycle_count += 1
 
         for vertex in range(self.V):
             if vertex not in visited:
-                dfs(vertex, -1)
+                dfs(vertex)
         return cycle_count // 2
-
-    def is_connected(self):
-        visited = set()
-
-        def dfs(vertex):
-            visited.add(vertex)
-            for neighbor in range(self.V):
-                if self.adj_matrix[vertex][neighbor] == 1 and neighbor not in visited:
-                    dfs(neighbor)
-
-        dfs(0)
-        return len(visited) == self.V
 
     def is_acyclic(self):
         return self.find_cycle() is None
 
     def is_tree(self):
-        return self.is_connected() and self.is_acyclic()
+        if self.is_acyclic() and self.is_drevocislen():
+            return True
+
+        is_subcyclic, edge = self.is_subcyclic()
+        if self.is_drevocislen() and is_subcyclic and edge is None:
+            return True
+
+        if self.is_acyclic() and self.is_subcyclic()[0]:
+            return True
+
+        return False
 
     def is_drevocislen(self):
-        edge_count = sum(sum(row) for row in self.adj_matrix) // 2
+        edge_count = sum(sum(row) for row in self.adj_matrix) / 2
         return edge_count == self.V - 1
 
     def is_subcyclic(self):
-        cycle_count = self.count_cycles()
-        if cycle_count > 1:
-            return False, None
         for u in range(self.V):
             for v in range(self.V):
                 if self.adj_matrix[u][v] == 0 and u != v:
