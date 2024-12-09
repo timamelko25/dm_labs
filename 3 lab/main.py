@@ -49,29 +49,24 @@ class Graph:
         return cycle
 
     def count_cycles(self):
-        visited = set()
-        cycle_count = 0
-
-        def dfs(start):
-            stack = [(start, -1)]
-            local_visited = set()
+        all_cycles = set()
+        for start in range(self.V):
+            stack = [(start, [start], [False] * self.V)]
             while stack:
-                vertex, parent = stack.pop()
-                if vertex not in local_visited:
-                    local_visited.add(vertex)
-                    visited.add(vertex)
-                    for neighbor in range(self.V):
-                        if self.adj_matrix[vertex][neighbor] == 1:
-                            if neighbor not in local_visited:
-                                stack.append((neighbor, vertex))
-                            elif neighbor != parent:
-                                nonlocal cycle_count
-                                cycle_count += 1
+                current, path, visited = stack.pop()
+                visited[current] = True
+                for neighbor in range(self.V):
+                    if self.adj_matrix[current][neighbor] == 1:
+                        if neighbor == start and len(path) > 2:
+                            cycle = tuple(sorted(path))
+                            all_cycles.add(cycle)
+                        elif not visited[neighbor]:
+                            stack.append((neighbor, path + [neighbor], visited[:]))
+                
+                visited[current] = False 
 
-        for vertex in range(self.V):
-            if vertex not in visited:
-                dfs(vertex)
-        return cycle_count // 2
+        return len(all_cycles)
+
 
     def is_acyclic(self):
         return self.find_cycle() is None
@@ -100,6 +95,7 @@ class Graph:
                     self.adj_matrix[u][v] = 1
                     self.adj_matrix[v][u] = 1
                     num_cycles_after = self.count_cycles()
+                    print(num_cycles_after)
                     self.adj_matrix[u][v] = 0
                     self.adj_matrix[v][u] = 0
                     if num_cycles_after > 1:
@@ -144,4 +140,4 @@ def main(filename):
     visualize_graph(g.adj_matrix)
 
 if __name__ == "__main__":
-    main('graph_2.txt')
+    main('graph_5.txt')
