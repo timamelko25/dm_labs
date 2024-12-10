@@ -19,13 +19,13 @@ class Graph:
                 return False
         return True
 
-    def find_min_vertex_cover(self):
-        vertices = range(self.V)
-        for size in range(1, self.V + 1):
-            for subset in combinations(vertices, size):
-                if self.is_vertex_cover(subset):
-                    return subset
-        return None
+    # def find_min_vertex_cover(self):
+    #     vertices = range(self.V)
+    #     for size in range(1, self.V + 1):
+    #         for subset in combinations(vertices, size):
+    #             if self.is_vertex_cover(subset):
+    #                 return subset
+    #     return None
 
     def is_independent_set(self, vertex_set):
         for i in vertex_set:
@@ -53,13 +53,17 @@ class Graph:
         return X
 
     def print_results(self):
-        min_vertex_cover = self.find_min_vertex_cover()
-        print("Наименьшее вершинное покрытие:", min_vertex_cover)
         max_independent_set = self.find_max_independent_set()
         if self.is_independent_set(max_independent_set):
             print("Наибольшее независимое множество вершин:", max_independent_set)
         else:
             print("Полученное множество не является независимым")
+        
+        min_vertex_cover = list(set(range(self.V))-set(max_independent_set))
+        if(self.is_vertex_cover(min_vertex_cover)):
+            print("Наименьшее вершинное покрытие:", min_vertex_cover)
+        else:
+            print("Найдено не вершинное покрытие")
 
 def visualize_graph(adj_matrix):
     G = nx.Graph()
@@ -67,6 +71,10 @@ def visualize_graph(adj_matrix):
         for j in range(i, len(adj_matrix)):
             if adj_matrix[i][j] == 1:
                 G.add_edge(i, j)
+    all_vertices = set(range(len(adj_matrix)))
+    connected_vertices = set(G.nodes())
+    isolated_vertices = all_vertices - connected_vertices
+    G.add_nodes_from(isolated_vertices)  # Добавляем их в граф
     plt.figure(figsize=(8, 6))
     pos = nx.spring_layout(G)
     nx.draw(
@@ -75,8 +83,9 @@ def visualize_graph(adj_matrix):
     plt.title("Graph Visualization")
     plt.show()
 
+
 if __name__ == "__main__":
-    filename = "graph1.txt"
+    filename = "graph5.txt"
     graph = Graph(filename)
     graph.print_results()
     visualize_graph(graph.adj_matrix)
