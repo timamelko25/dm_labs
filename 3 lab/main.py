@@ -75,10 +75,6 @@ class Graph:
         if self.is_acyclic() and self.is_drevocislen():
             return True
 
-        is_subcyclic, edge = self.is_subcyclic()
-        if self.is_drevocislen() and is_subcyclic and edge is None:
-            return True
-
         if self.is_acyclic() and self.is_subcyclic()[0]:
             return True
 
@@ -89,17 +85,20 @@ class Graph:
         return edge_count == self.V - 1
 
     def is_subcyclic(self):
+        max_cycles = -1
         for u in range(self.V):
             for v in range(self.V):
                 if self.adj_matrix[u][v] == 0 and u != v:
                     self.adj_matrix[u][v] = 1
                     self.adj_matrix[v][u] = 1
                     num_cycles_after = self.count_cycles()
-                    print(num_cycles_after)
+                    max_cycles = max(num_cycles_after, max_cycles)
                     self.adj_matrix[u][v] = 0
                     self.adj_matrix[v][u] = 0
                     if num_cycles_after > 1:
                         return False, (u, v)
+        if max_cycles == 0:
+            return False, None
         return True, None
 
 def visualize_graph(adj_matrix):
@@ -108,6 +107,10 @@ def visualize_graph(adj_matrix):
         for j in range(i, len(adj_matrix)):
             if adj_matrix[i][j] == 1:
                 G.add_edge(i, j)
+    all_vertices = set(range(len(adj_matrix)))
+    connected_vertices = set(G.nodes())
+    isolated_vertices = all_vertices - connected_vertices
+    G.add_nodes_from(isolated_vertices)
     plt.figure(figsize=(8, 6))
     pos = nx.spring_layout(G)
     nx.draw(
@@ -140,4 +143,4 @@ def main(filename):
     visualize_graph(g.adj_matrix)
 
 if __name__ == "__main__":
-    main('graph_5.txt')
+    main('graph7.txt')
