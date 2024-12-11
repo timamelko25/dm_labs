@@ -1,4 +1,3 @@
-from itertools import combinations
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -11,6 +10,14 @@ class Graph:
         with open(file_path, 'r') as f:
             adj_matrix = [list(map(int, line.strip().split())) for line in f]
         return adj_matrix
+    
+    def write_answer(self, filename):
+        filename = f'{filename}_answer.txt'
+        with open(filename, 'w') as f:
+            max_independent_set = self.find_max_independent_set()
+            f.write(f"Наибольшее независимое множество вершин: {max_independent_set}")
+            min_vertex_cover = list(set(range(self.V))-set(max_independent_set))
+            f.write(f"Наименьшее вершинное покрытие: {min_vertex_cover}")
 
     def is_vertex_cover(self, vertex_set):
         edges = [(i, j) for i in range(self.V) for j in range(i + 1, self.V) if self.adj_matrix[i][j] == 1]
@@ -18,14 +25,6 @@ class Graph:
             if u not in vertex_set and v not in vertex_set:
                 return False
         return True
-
-    # def find_min_vertex_cover(self):
-    #     vertices = range(self.V)
-    #     for size in range(1, self.V + 1):
-    #         for subset in combinations(vertices, size):
-    #             if self.is_vertex_cover(subset):
-    #                 return subset
-    #     return None
 
     def is_independent_set(self, vertex_set):
         for i in vertex_set:
@@ -74,7 +73,7 @@ def visualize_graph(adj_matrix):
     all_vertices = set(range(len(adj_matrix)))
     connected_vertices = set(G.nodes())
     isolated_vertices = all_vertices - connected_vertices
-    G.add_nodes_from(isolated_vertices)  # Добавляем их в граф
+    G.add_nodes_from(isolated_vertices)
     plt.figure(figsize=(8, 6))
     pos = nx.spring_layout(G)
     nx.draw(
@@ -88,4 +87,5 @@ if __name__ == "__main__":
     filename = "graph5.txt"
     graph = Graph(filename)
     graph.print_results()
+    graph.write_answer(filename)
     visualize_graph(graph.adj_matrix)
