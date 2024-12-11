@@ -10,6 +10,28 @@ class Graph:
         with open(filename, 'r') as file:
             adj_matrix = [list(map(int, line.strip().split())) for line in file]
         return adj_matrix
+    
+    def write_matrix(self, filename):
+        filename = f'{filename}_answer.txt'
+        with open(filename, 'w') as f:
+            if self.is_acyclic():
+                f.write("Граф является ацикличным.")
+            else:
+                cycle = self.find_cycle()
+                f.write(f"Граф содержит цикл: {cycle}")
+            if self.is_drevocislen():
+                f.write("Граф является древочисленным (q = p - 1).")
+            else:
+                f.write("Граф не является древочисленным (q != p - 1).")
+            is_subcyclic, edge = self.is_subcyclic()
+            if is_subcyclic:
+                f.write("Граф является субциклическим.")
+            else:
+                f.write(f"Субцикличность нарушена при добавлении ребра {edge}.")
+            if self.is_tree():
+                f.write("Граф является деревом.")
+            else:
+                f.write("Граф не является деревом.")
 
     def find_cycle(self):
         visited = set()
@@ -119,6 +141,7 @@ def visualize_graph(adj_matrix):
     plt.title("Graph Visualization")
     plt.show()
 
+
 def main(filename):
     g = Graph(filename)
     print("Проверка свойств графа:")
@@ -140,7 +163,9 @@ def main(filename):
         print("Граф является деревом.")
     else:
         print("Граф не является деревом.")
+    g.write_matrix(filename)
+    
     visualize_graph(g.adj_matrix)
 
 if __name__ == "__main__":
-    main('graph7.txt')
+    main('graph_7.txt')
