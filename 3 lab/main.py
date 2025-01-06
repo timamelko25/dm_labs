@@ -94,9 +94,6 @@ class Graph:
         return self.find_cycle() is None
 
     def is_tree(self):
-        if self.is_acyclic() and self.is_drevocislen():
-            return True
-
         if self.is_acyclic() and self.is_subcyclic()[0]:
             return True
 
